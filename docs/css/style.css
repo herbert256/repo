@@ -221,6 +221,10 @@ kbd {
 
 .figures { list-style: none; padding: 0; margin: 4px 0 0; font-size: 14px; color: var(--ink-soft); }
 .figures li { margin-bottom: 3px; padding-left: 1.2em; text-indent: -1.2em; }
+.flora-page .latin { font-size: clamp(34px, calc(var(--page-w) * .085), 52px); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--rubric); font-family: "IM Fell English SC", "IM Fell English", serif; }
+.flora-page .description::first-letter { color: var(--ink); }
+.flora-begin { text-align: center; margin: 24px 0 0 !important; }
+.plate-wrap.to-flora { cursor: pointer; }
 .folio { text-align: center; margin-top: 26px !important; font-size: 13px; color: var(--ink-faint); letter-spacing: .1em; }
 
 /* ------------------------------------------------------------ toolbar */

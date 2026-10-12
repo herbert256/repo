@@ -442,7 +442,7 @@ function makeCanvas(w, h) {
   return c;
 }
 
-function makePaper(res, rng) {
+export function makePaper(res, rng) {
   const cv = makeCanvas(LW * res, LH * res);
   const x = cv.getContext('2d');
   x.setTransform(res, 0, 0, res, 0, 0);

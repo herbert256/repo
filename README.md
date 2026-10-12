@@ -22,6 +22,11 @@ the herbarium's (equally imaginary) collectors, its folklore, and its **song**.
 - **Plants can be crossed.** *Gather pollen* on one plate, turn to another and
   *pollinate* it. That raises a hybrid that is in no plate of the book, and hybrids
   can be crossed again (`#42x977`, `#(42x977)x13`, …).
+- **Flora presides.** The frontispiece is Flora, the Roman goddess of flowers, after
+  Titian's *Flora* (c. 1515, Uffizi). It is translated into a hand-coloured copper
+  engraving of swelling hatched lines and engraved before your eyes like every plate.
+  Her page tells her story from Ovid and the history of her festival, the Floralia,
+  and she has a song of her own (`#flora`).
 
 Keys: `←` `→` turn pages · `R` random plate · `S` song (it keeps playing as you turn
 the pages) · `Esc` title page. Click a plate while it is being engraved to finish it
@@ -29,8 +34,9 @@ at once.
 
 ## How it is made
 
-There are no images, samples or libraries. Everything is drawn, written and played
-by plain JavaScript in `docs/`:
+There are no samples or libraries, and the only image is the photograph of Titian's
+painting that Flora is engraved from. Everything else is drawn, written and played by
+plain JavaScript in `docs/`:
 
 | file | what it does |
 | --- | --- |
@@ -38,6 +44,7 @@ by plain JavaScript in `docs/`:
 | `js/plate.js` | the engraver: paper, plate-mark, ink linework, hatching, watercolour washes, inset figures and lettering, all on Canvas 2D |
 | `js/text.js` | the botanist: Latin names, an invented geography, a cast of collectors, descriptions, folklore and song notes |
 | `js/song.js` | the composer: a generative piece for each plant, synthesised live with the Web Audio API |
+| `js/flora.js` | the frontispiece: Titian's *Flora* (public domain) translated into three layers of burin hatching over a watercolour wash |
 | `js/main.js` | the binding: page turns, cross-pollination, saving plates, and the pollen that rises from the flowers as they sing |
 
 Served as a static site by GitHub Pages from `docs/`. To run it locally:

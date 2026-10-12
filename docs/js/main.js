@@ -4,13 +4,14 @@ import { genomeFromId, plateOfTheDay, PLATE_COUNT, toRoman, hslString } from './
 import { renderPlate } from './plate.js';
 import { describe } from './text.js';
 import { createSong, pageTurn, unlockAudio } from './song.js';
+import { renderFlora, preloadFlora, FLORA_GENOME } from './flora.js';
 
 const $ = (id) => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const el = {
   plate: $('plate'), motes: $('motes'), plateWrap: $('plateWrap'), leaf: $('leaf'),
-  titlePage: $('titlePage'), specimen: $('specimen'),
+  titlePage: $('titlePage'), specimen: $('specimen'), floraPage: $('floraPage'), songFlora: $('songBtnFlora'),
   prev: $('prevBtn'), next: $('nextBtn'), random: $('randomBtn'), title: $('titleBtn'),
   song: $('songBtn'), songInline: $('songBtnInline'), pollen: $('pollenBtn'), pollenLabel: $('pollenLabel'),
   save: $('saveBtn'), link: $('linkBtn'), gotoForm: $('gotoForm'), gotoInput: $('gotoInput'),
@@ -26,6 +27,7 @@ const state = {
   lastPlate: 1,       // last numbered plate, for turning pages away from a hybrid
   pollen: load('flora.pollen'),
   turn: 0,            // guards against stale page turns
+  view: 'title',      // 'title' | 'flora' | 'plate'
 };
 
 // ------------------------------------------------------------------ helpers
@@ -57,6 +59,13 @@ function captionFor(g, d, label = g.label) {
 
 // ------------------------------------------------------------------ engraving
 
+// Draw a plant's plate, or the goddess herself, onto a canvas.
+function press(canvas, g, d, label, opts) {
+  return g === FLORA_GENOME
+    ? renderFlora(canvas, { ...opts, label: label || 'Frontispiece' })
+    : renderPlate(canvas, g, { ...opts, caption: captionFor(g, d, label) });
+}
+
 function engrave(g, d, label) {
   state.ctrl?.cancel();
   motes.clear();
@@ -64,10 +73,9 @@ function engrave(g, d, label) {
   el.plateWrap.classList.toggle('drawing', animate);
   let ctrl;
   try {
-    ctrl = renderPlate(el.plate, g, {
+    ctrl = press(el.plate, g, d, label, {
       animate,
       resolution: plateResolution(),
-      caption: captionFor(g, d, label),
       onDone: () => { if (state.ctrl === ctrl) el.plateWrap.classList.remove('drawing'); },
     });
   } catch (err) {
@@ -81,6 +89,7 @@ function engrave(g, d, label) {
 
 el.plateWrap.addEventListener('click', () => {
   if (el.plateWrap.classList.contains('drawing')) state.ctrl?.finish();
+  else if (state.view === 'title') go('flora');
 });
 
 // ------------------------------------------------------------------ pollen motes (the song made visible)
@@ -192,6 +201,8 @@ function updateSongButtons() {
   el.song.querySelector('span').textContent = state.listening ? 'Singing' : 'Song';
   el.songInline.classList.toggle('playing', state.listening);
   el.songInline.querySelector('span').textContent = state.listening ? 'Hush' : 'Hear its song';
+  el.songFlora.classList.toggle('playing', state.listening);
+  el.songFlora.querySelector('span').textContent = state.listening ? 'Hush' : 'Hear her song';
 }
 
 // ------------------------------------------------------------------ pages
@@ -228,10 +239,14 @@ function showTitle() {
   state.genome = null;
   state.text = null;
   if (state.listening) { state.listening = false; state.song?.stop(); state.song = null; updateSongButtons(); }
+  state.view = 'title';
   document.body.classList.add('on-title');
   document.title = 'Flora Nusquam — a herbarium of plants that have never grown';
   el.specimen.hidden = true;
+  el.floraPage.hidden = true;
   el.titlePage.hidden = false;
+  el.plateWrap.classList.add('to-flora');
+  el.plateWrap.title = 'Flora, goddess of flowers — turn to her page';
   el.gotoInput.value = '';
   el.gotoInput.placeholder = 'e.g. XLII';
   el.prev.disabled = true;
@@ -241,13 +256,41 @@ function showTitle() {
   $('tpToday').href = `#${today}`;
   $('tpToday').textContent = `The specimen of the day`;
   $('tpToday').title = `Tab. ${toRoman(today)}`;
-  // The frontispiece is the specimen of the day.
-  const g = genomeFromId(String(today));
-  let d;
-  try { d = describe(g); } catch (err) { console.error(err); return; }
+  // The frontispiece is the goddess herself.
   if (turn !== state.turn) return;
-  state.frontispiece = g;
-  engrave(g, d, 'Frontispiece');
+  state.frontispiece = FLORA_GENOME;
+  engrave(FLORA_GENOME, null, 'Frontispiece');
+  updatePollenUi();
+}
+
+function showFlora() {
+  const turn = ++state.turn;
+  state.genome = FLORA_GENOME;
+  state.text = null;
+  state.view = 'flora';
+  document.body.classList.remove('on-title');
+  document.title = 'Flora, goddess of flowers — Flora Nusquam';
+  el.titlePage.hidden = true;
+  el.specimen.hidden = true;
+  el.floraPage.hidden = false;
+  el.plateWrap.classList.remove('to-flora');
+  el.plateWrap.title = '';
+  el.floraPage.classList.remove('turning');
+  void el.floraPage.offsetWidth;
+  el.floraPage.classList.add('turning');
+  el.leaf.scrollTop = 0;
+  el.gotoInput.value = '';
+  el.gotoInput.placeholder = 'Flora';
+  el.prev.disabled = false;
+  el.title.disabled = false;
+  pageTurn();
+  el.plate.classList.add('fading');
+  setTimeout(() => {
+    if (turn !== state.turn) return;
+    engrave(FLORA_GENOME, null, 'Frontispiece');
+    el.plate.classList.remove('fading');
+    if (state.listening) singCurrent();
+  }, reducedMotion ? 0 : 200);
   updatePollenUi();
 }
 
@@ -262,10 +305,14 @@ function showPlate(g, { quiet = false } = {}) {
   state.text = d;
   if (g.plate) state.lastPlate = g.plate;
 
+  state.view = 'plate';
   document.body.classList.remove('on-title');
   document.title = `${d.latin.full.replace(/\*/g, '')} — Flora Nusquam`;
   el.titlePage.hidden = true;
+  el.floraPage.hidden = true;
   el.specimen.hidden = false;
+  el.plateWrap.classList.remove('to-flora');
+  el.plateWrap.title = '';
   fillSpecimen(g, d);
   el.specimen.classList.remove('turning');
   void el.specimen.offsetWidth;
@@ -296,9 +343,11 @@ function go(id) {
 }
 
 function step(delta) {
-  const base = state.genome?.plate ?? (state.genome ? state.lastPlate : 0);
+  if (state.view === 'title') { if (delta > 0) go('flora'); return; }
+  if (state.view === 'flora') { go(delta > 0 ? 1 : 'title'); return; }
+  const base = state.genome?.plate ?? state.lastPlate;
   let n = base + delta;
-  if (n < 1) n = PLATE_COUNT;
+  if (n < 1) { go('flora'); return; }
   if (n > PLATE_COUNT) n = 1;
   go(n);
 }
@@ -335,6 +384,7 @@ function fromRoman(s) {
 function route() {
   const id = decodeURIComponent(location.hash.slice(1));
   if (!id || id === 'title') { showTitle(); return; }
+  if (id.toLowerCase() === 'flora') { showFlora(); return; }
   const g = genomeFromId(id);
   if (!g) {
     toast(`There is no plate “${esc(id)}” in this herbarium.`);
@@ -352,7 +402,8 @@ function updatePollenUi() {
   if (state.pollen && !pollen) { state.pollen = null; store('flora.pollen', null); }
   el.pollenChip.hidden = !pollen;
   if (pollen) el.pollenOf.textContent = pollen.label;
-  const g = state.genome;
+  const g = state.view === 'plate' ? state.genome : null;
+  el.pollen.disabled = state.view === 'flora';
   const canPollinate = pollen && g && pollen.id !== g.id;
   el.pollen.classList.toggle('armed', !!canPollinate);
   el.pollenLabel.textContent = canPollinate ? 'Pollinate' : pollen && g && pollen.id === g.id ? 'Pollen gathered' : 'Gather pollen';
@@ -363,7 +414,7 @@ function updatePollenUi() {
 
 function pollinate() {
   const g = state.genome;
-  if (!g) return;
+  if (!g || state.view !== 'plate') return;
   const pollen = state.pollen ? genomeFromId(state.pollen) : null;
   if (!pollen) {
     state.pollen = g.id;
@@ -387,16 +438,16 @@ function pollinate() {
 
 async function savePlate() {
   const g = state.genome, d = state.text;
-  if (!g || !d) return;
+  if (!g || (!d && g !== FLORA_GENOME)) return;
   toast('Pulling a fresh impression from the plate…', 2000);
   await new Promise((r) => setTimeout(r, 30));
   try {
     const cv = document.createElement('canvas');
-    await renderPlate(cv, g, { animate: false, resolution: 2.4, caption: captionFor(g, d) }).done;
+    await press(cv, g, d, g.label, { animate: false, resolution: 2.4 }).done;
     const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `flora-nusquam-${g.plate ? 'tab-' + toRoman(g.plate) : 'hybrid-' + g.id.replace(/[()]/g, '')}.png`;
+    a.download = `flora-nusquam-${g === FLORA_GENOME ? 'frontispiece-flora' : g.plate ? 'tab-' + toRoman(g.plate) : 'hybrid-' + g.id.replace(/[()]/g, '')}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -421,6 +472,7 @@ el.random.addEventListener('click', randomPlate);
 el.title.addEventListener('click', () => go('title'));
 el.song.addEventListener('click', toggleSong);
 el.songInline.addEventListener('click', toggleSong);
+el.songFlora.addEventListener('click', toggleSong);
 el.pollen.addEventListener('click', pollinate);
 el.pollenDrop.addEventListener('click', () => { state.pollen = null; store('flora.pollen', null); updatePollenUi(); toast('The pollen is scattered.'); });
 el.save.addEventListener('click', savePlate);
@@ -430,7 +482,8 @@ $('tpRandom').addEventListener('click', (e) => { e.preventDefault(); randomPlate
 el.gotoForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const id = parsePlateInput(el.gotoInput.value);
-  if (id && genomeFromId(id)) { el.gotoInput.blur(); go(id); }
+  if (/^flora$/i.test(el.gotoInput.value.trim())) { el.gotoInput.blur(); go('flora'); }
+  else if (id && genomeFromId(id)) { el.gotoInput.blur(); go(id); }
   else toast('Give a plate between I and MMMCMXCIX (or 1 to 3999).');
 });
 el.gotoInput.addEventListener('focus', () => el.gotoInput.select());
@@ -439,7 +492,7 @@ addEventListener('keydown', (e) => {
   if (e.target.closest?.('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key;
   if (k === 'ArrowRight') { step(+1); e.preventDefault(); }
-  else if (k === 'ArrowLeft') { if (state.genome) step(-1); e.preventDefault(); }
+  else if (k === 'ArrowLeft') { step(-1); e.preventDefault(); }
   else if (k === 'r' || k === 'R') randomPlate();
   else if ((k === 's' || k === 'S') && state.genome) toggleSong();
   else if (k === 'Escape' && state.genome) go('title');
@@ -464,10 +517,10 @@ addEventListener('resize', () => {
     if (Math.abs(r - lastRes) / (lastRes || 1) > 0.25) {
       lastRes = r;
       const g = state.genome || state.frontispiece;
-      const d = state.text || (g && describe(g));
-      if (g && d) {
+      const d = g === FLORA_GENOME ? null : state.text || (g && describe(g));
+      if (g && (d || g === FLORA_GENOME)) {
         state.ctrl?.cancel();
-        state.ctrl = renderPlate(el.plate, g, { animate: false, resolution: r, caption: captionFor(g, d, state.genome ? g.label : 'Frontispiece') });
+        state.ctrl = press(el.plate, g, d, state.view === 'plate' ? g.label : 'Frontispiece', { animate: false, resolution: r });
         el.plateWrap.classList.remove('drawing');
       }
     }
@@ -475,6 +528,7 @@ addEventListener('resize', () => {
 });
 
 addEventListener('hashchange', route);
+preloadFlora().catch(() => {});
 (async () => {
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1200))]); } catch { /* no font API */ }
   lastRes = plateResolution();
