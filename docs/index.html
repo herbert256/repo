@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flora Nusquam</title>
+<meta name="description" content="A herbarium of 3999 plants that have never grown — each one engraved, coloured and named, with its own song. Cross two plates to raise a hybrid no one has seen.">
+<meta property="og:title" content="Flora Nusquam — a herbarium of plants that have never grown">
+<meta property="og:description" content="3999 impossible plants, engraved before your eyes, each with its own song.">
+<meta name="theme-color" content="#16201a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23f1e8d4'/%3E%3Cpath d='M32 56 C31 44 33 34 32 22' stroke='%232a2118' stroke-width='2.5' fill='none'/%3E%3Cpath d='M32 40 C24 38 19 32 18 27 C25 28 30 33 32 40Z' fill='%236b8a4e' stroke='%232a2118' stroke-width='1.5'/%3E%3Cg fill='%23a8435a' stroke='%232a2118' stroke-width='1.4'%3E%3Cellipse cx='32' cy='13' rx='4.5' ry='8'/%3E%3Cellipse cx='32' cy='13' rx='4.5' ry='8' transform='rotate(72 32 20)'/%3E%3Cellipse cx='32' cy='13' rx='4.5' ry='8' transform='rotate(144 32 20)'/%3E%3Cellipse cx='32' cy='13' rx='4.5' ry='8' transform='rotate(216 32 20)'/%3E%3Cellipse cx='32' cy='13' rx='4.5' ry='8' transform='rotate(288 32 20)'/%3E%3C/g%3E%3Ccircle cx='32' cy='20' r='3' fill='%23e0b84a' stroke='%232a2118' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=IM+Fell+Great+Primer:ital@0;1&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="desk">
+  <div class="book" id="book">
+    <section class="page left" aria-label="Plate">
+      <div class="plate-wrap" id="plateWrap">
+        <canvas id="plate" aria-label="Engraved botanical plate"></canvas>
+        <canvas id="motes" aria-hidden="true"></canvas>
+        <div class="engraving-hint" id="hint">click to finish the engraving</div>
+      </div>
+    </section>
+
+    <section class="page right" id="leaf" aria-live="polite">
+      <!-- title page -->
+      <article class="title-page" id="titlePage">
+        <p class="tp-small">The</p>
+        <h1 class="tp-title">Flora<br>Nusquam</h1>
+        <p class="tp-or">or,</p>
+        <p class="tp-sub">A Herbarium of Plants<br>that have never grown</p>
+        <div class="tp-rule"><span>❦</span></div>
+        <p class="tp-desc">in three thousand nine hundred &amp; ninety-nine plates,
+          engraved and coloured before the reader’s eyes;<br>
+          with their descriptions, their virtues, and their <em>songs</em>.</p>
+        <p class="tp-desc tp-desc-2">To which is added a method for the
+          <em>crossing</em> of any two plates, by which new kinds may be raised
+          that no one has seen.</p>
+        <nav class="tp-actions">
+          <a class="tp-btn primary" href="#1">Open at Plate&nbsp;I</a>
+          <a class="tp-btn" id="tpToday" href="#">The specimen of the day</a>
+          <a class="tp-btn" id="tpRandom" href="#">Open at random</a>
+        </nav>
+        <p class="tp-imprint">NOWHERE:<br>printed for the curious</p>
+        <p class="tp-dedication">— for Herbert —</p>
+        <details class="tp-colophon">
+          <summary>How to use this book</summary>
+          <p>No plant in this book has ever grown. Each is raised from its plate number alone —
+            the same plant for every reader, on every day — and engraved afresh, line by line,
+            whenever its page is opened.</p>
+          <ul>
+            <li><kbd>←</kbd> <kbd>→</kbd> turn the pages &nbsp;·&nbsp; <kbd>R</kbd> open at random</li>
+            <li><kbd>S</kbd> hear the plant’s song — it keeps singing as you turn the pages</li>
+            <li><b>Gather pollen</b> on one plate, turn to another and <b>pollinate</b> it to raise a hybrid.
+              Hybrids can be crossed again.</li>
+            <li>Click a plate while it is being engraved to finish it at once.</li>
+          </ul>
+        </details>
+        <p class="tp-made">A gift from Claude, October MMXXVI</p>
+      </article>
+
+      <!-- specimen page -->
+      <article class="specimen" id="specimen" hidden>
+        <header class="running-head"><span id="rhLabel"></span><span id="rhFamily"></span></header>
+        <div id="hybridNote" class="hybrid-note" hidden></div>
+        <h2 class="latin" id="latin"></h2>
+        <p class="family" id="family"></p>
+        <p class="common" id="common"></p>
+        <div class="rule"><span>❧</span></div>
+        <p class="description" id="description"></p>
+        <p class="etymology" id="etymology"></p>
+
+        <h3>Locus</h3>
+        <p id="habitat"></p>
+        <h3>Floret</h3>
+        <p id="flowering"></p>
+        <h3>Ex schedis</h3>
+        <blockquote class="notes">
+          <p id="notesText"></p>
+          <footer><span class="signature" id="notesSig"></span><span class="notes-meta" id="notesMeta"></span></footer>
+        </blockquote>
+        <h3>Virtutes</h3>
+        <p id="virtues"></p>
+        <h3>Cantus</h3>
+        <p id="songText"></p>
+        <button class="song-btn" id="songBtnInline" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5a2.5 2.5 0 1 1-2.5-2.5c.9 0 1.7.5 2.5 1V4l10-2v12.5a2.5 2.5 0 1 1-2.5-2.5c.9 0 1.7.5 2.5 1V6.2L9 8.2z"/></svg>
+          <span>Hear its song</span>
+        </button>
+        <h3>Explicatio tabulae</h3>
+        <ol class="figures" id="figures"></ol>
+        <p class="folio" id="folio"></p>
+      </article>
+    </section>
+  </div>
+
+  <nav class="toolbar" id="toolbar" aria-label="Herbarium controls">
+    <button class="tb" id="prevBtn" type="button" title="Previous plate (←)" aria-label="Previous plate">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <form class="goto" id="gotoForm" autocomplete="off">
+      <label for="gotoInput">Tab.</label>
+      <input id="gotoInput" inputmode="numeric" spellcheck="false" aria-label="Plate number">
+      <span class="of">of MMMCMXCIX</span>
+    </form>
+    <button class="tb" id="nextBtn" type="button" title="Next plate (→)" aria-label="Next plate">
+      <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <span class="sep"></span>
+    <button class="tb" id="randomBtn" type="button" title="Open at random (R)" aria-label="Random plate">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2" class="dot"/><circle cx="15" cy="15" r="1.2" class="dot"/><circle cx="15" cy="9" r="1.2" class="dot"/><circle cx="9" cy="15" r="1.2" class="dot"/></svg></button>
+    <button class="tb" id="titleBtn" type="button" title="Title page" aria-label="Title page">
+      <svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1v14c-2-2-5-2-8-1zM20 5c-3-1-6-1-8 1v14c2-2 5-2 8-1z"/></svg></button>
+    <span class="sep needs-plate"></span>
+    <button class="tb wide needs-plate" id="songBtn" type="button" title="Hear its song (S)">
+      <svg viewBox="0 0 24 24"><path d="M9 17.5a2.5 2.5 0 1 1-2.5-2.5c.9 0 1.7.5 2.5 1V4l10-2v12.5a2.5 2.5 0 1 1-2.5-2.5c.9 0 1.7.5 2.5 1V6.2L9 8.2z" class="fill"/></svg>
+      <span>Song</span></button>
+    <button class="tb wide needs-plate" id="pollenBtn" type="button" title="Gather pollen to cross with another plate">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6" class="fill"/><circle cx="12" cy="4.5" r="1.4" class="fill"/><circle cx="18.5" cy="8.3" r="1.4" class="fill"/><circle cx="18.5" cy="15.7" r="1.4" class="fill"/><circle cx="12" cy="19.5" r="1.4" class="fill"/><circle cx="5.5" cy="15.7" r="1.4" class="fill"/><circle cx="5.5" cy="8.3" r="1.4" class="fill"/></svg>
+      <span id="pollenLabel">Gather pollen</span></button>
+    <span class="sep needs-plate"></span>
+    <button class="tb needs-plate" id="saveBtn" type="button" title="Save this plate as an image" aria-label="Save plate">
+      <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg></button>
+    <button class="tb needs-plate" id="linkBtn" type="button" title="Copy a link to this plate" aria-label="Copy link">
+      <svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>
+  </nav>
+
+  <div class="pollen-chip" id="pollenChip" hidden>
+    <span>Carrying pollen of <b id="pollenOf"></b></span>
+    <button type="button" id="pollenDrop" aria-label="Discard pollen">×</button>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+</main>
+
+<noscript><p class="noscript">This herbarium is engraved by script; please allow JavaScript to turn its pages.</p></noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

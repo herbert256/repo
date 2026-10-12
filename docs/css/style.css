@@ -1,0 +1,324 @@
+:root {
+  --paper: #f1e8d4;
+  --paper-deep: #e6d9bd;
+  --ink: #2a2118;
+  --ink-soft: #5b4a39;
+  --ink-faint: #8a7660;
+  --rubric: #8e2f1d;
+  --gold: #b8924a;
+  --baize: #1c2a21;
+  --baize-deep: #0c120e;
+  --plate-ratio: 0.7142857; /* 1000 / 1400 */
+  --page-h: min(calc(100svh - 112px), 1060px);
+  --page-w: calc(var(--page-h) * var(--plate-ratio));
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .16 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .22 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 42%, #2b3d30 0%, var(--baize) 45%, var(--baize-deep) 100%);
+  background-color: var(--baize-deep);
+  color: var(--ink);
+  font-family: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body::before { /* the baize itself */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: var(--grain); opacity: .55; mix-blend-mode: overlay;
+}
+
+.desk {
+  position: relative; z-index: 1;
+  min-height: 100svh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 20px 16px 24px;
+}
+
+/* ------------------------------------------------------------ the book */
+
+.book {
+  position: relative;
+  display: flex;
+  height: var(--page-h);
+  filter: drop-shadow(0 28px 36px rgba(0,0,0,.55)) drop-shadow(0 4px 6px rgba(0,0,0,.35));
+}
+.book::before, .book::after { /* stacked page edges */
+  content: ""; position: absolute; top: 6px; bottom: -6px; width: 14px; z-index: -1;
+  background: repeating-linear-gradient(90deg, #d8caa9 0 1px, #efe5cd 1px 3px);
+  border-radius: 3px;
+}
+.book::before { left: -7px; }
+.book::after { right: -7px; }
+
+.page {
+  position: relative;
+  width: var(--page-w);
+  height: 100%;
+  background-color: var(--paper);
+  background-image: var(--fibres), var(--grain);
+}
+.page.left {
+  border-radius: 6px 2px 2px 6px;
+  box-shadow: inset -42px 0 50px -40px rgba(60,40,15,.55), inset 0 0 70px rgba(120,90,40,.18);
+  overflow: hidden;
+}
+.page.right {
+  border-radius: 2px 6px 6px 2px;
+  box-shadow: inset 42px 0 50px -40px rgba(60,40,15,.55), inset 0 0 70px rgba(120,90,40,.18);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(90,70,40,.35) transparent;
+}
+.page.right::-webkit-scrollbar { width: 8px; }
+.page.right::-webkit-scrollbar-thumb { background: rgba(90,70,40,.3); border-radius: 4px; }
+
+.plate-wrap {
+  position: absolute; inset: 0;
+  cursor: default;
+}
+.plate-wrap.drawing { cursor: pointer; }
+.plate-wrap canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block;
+}
+#plate { transition: opacity .35s ease; }
+#plate.fading { opacity: 0; }
+#motes { pointer-events: none; }
+.engraving-hint {
+  position: absolute; left: 50%; top: 5px; transform: translateX(-50%);
+  font-style: italic; font-size: 12.5px; color: var(--ink-faint);
+  opacity: 0; transition: opacity .6s ease; pointer-events: none; white-space: nowrap;
+}
+.plate-wrap.drawing .engraving-hint { opacity: .8; transition-delay: 2.5s; }
+
+/* ------------------------------------------------------------ title page */
+
+.title-page {
+  min-height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 7% 11% 6%;
+}
+.tp-small { font-family: "IM Fell English SC", serif; letter-spacing: .3em; margin: 0; font-size: 15px; color: var(--ink-soft); }
+.tp-title {
+  font-family: "IM Fell Great Primer", "IM Fell English", serif;
+  font-weight: 400; margin: 6px 0 4px;
+  font-size: clamp(42px, calc(var(--page-w) * .14), 84px);
+  line-height: .92; letter-spacing: .02em;
+  color: var(--rubric);
+  text-transform: uppercase;
+}
+.tp-or { font-style: italic; margin: 8px 0 4px; font-size: 17px; }
+.tp-sub {
+  font-family: "IM Fell English SC", serif; margin: 0;
+  font-size: clamp(17px, calc(var(--page-w) * .042), 24px); line-height: 1.25; letter-spacing: .06em;
+}
+.tp-rule, .rule { display: flex; align-items: center; gap: 12px; color: var(--ink-soft); width: 62%; margin: 18px auto; }
+.tp-rule::before, .tp-rule::after, .rule::before, .rule::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: .45; }
+.tp-rule span, .rule span { font-size: 20px; line-height: 1; }
+.tp-desc { margin: 0 0 8px; font-size: 15.5px; line-height: 1.45; font-style: italic; color: var(--ink-soft); }
+.tp-desc em { font-style: normal; color: var(--rubric); }
+.tp-desc-2 { font-size: 14px; margin-top: 4px; }
+.tp-actions { display: flex; flex-direction: column; gap: 8px; margin: 22px 0 18px; align-items: center; }
+.tp-btn {
+  display: inline-block; min-width: 230px;
+  font-family: "IM Fell English SC", serif; font-size: 16px; letter-spacing: .08em;
+  color: var(--ink); text-decoration: none;
+  padding: 7px 18px 6px; border: 1px solid rgba(42,33,24,.45); border-radius: 2px;
+  background: rgba(255,250,235,.35);
+  transition: background .2s, color .2s, border-color .2s;
+}
+.tp-btn:hover, .tp-btn:focus-visible { background: var(--ink); color: var(--paper); border-color: var(--ink); outline: none; }
+.tp-btn.primary { border-color: var(--rubric); color: var(--rubric); }
+.tp-btn.primary:hover, .tp-btn.primary:focus-visible { background: var(--rubric); color: var(--paper); }
+.tp-imprint { font-family: "IM Fell English SC", serif; letter-spacing: .12em; font-size: 13.5px; margin: 6px 0 4px; line-height: 1.5; }
+.tp-dedication { font-style: italic; color: var(--ink-soft); margin: 4px 0 14px; font-size: 14px; }
+.tp-colophon { max-width: 34em; text-align: left; font-size: 13.5px; color: var(--ink-soft); line-height: 1.45; }
+.tp-colophon summary { cursor: pointer; text-align: center; font-style: italic; list-style: none; color: var(--ink-faint); }
+.tp-colophon summary::-webkit-details-marker { display: none; }
+.tp-colophon summary::before { content: "☞ "; font-style: normal; }
+.tp-colophon ul { padding-left: 1.1em; margin: 6px 0 0; }
+.tp-colophon li { margin-bottom: 4px; }
+kbd {
+  font-family: "IM Fell English", serif; font-size: 12px;
+  border: 1px solid rgba(42,33,24,.4); border-bottom-width: 2px; border-radius: 3px;
+  padding: 0 5px; background: rgba(255,250,235,.5);
+}
+.tp-made { margin: 14px 0 0; font-size: 11.5px; letter-spacing: .14em; color: var(--ink-faint); font-family: "IM Fell English SC", serif; }
+
+/* ------------------------------------------------------------ specimen page */
+
+.specimen {
+  padding: 34px 9% 40px;
+  font-size: 15.5px; line-height: 1.5;
+  hyphens: auto; -webkit-hyphens: auto;
+}
+.specimen.turning { animation: settle .7s ease both; }
+@keyframes settle { from { opacity: 0; transform: translateX(10px); filter: blur(1.5px); } to { opacity: 1; transform: none; filter: none; } }
+
+.running-head {
+  display: flex; justify-content: space-between;
+  font-family: "IM Fell English SC", serif; font-size: 13px; letter-spacing: .14em; color: var(--ink-faint);
+  border-bottom: 1px solid rgba(42,33,24,.25); padding-bottom: 4px; margin-bottom: 22px;
+}
+.hybrid-note {
+  font-size: 13.5px; font-style: italic; color: var(--ink-soft); text-align: center; margin: -8px 0 12px;
+}
+.hybrid-note a { color: var(--rubric); }
+.latin {
+  font-family: "IM Fell Great Primer", "IM Fell English", serif;
+  font-weight: 400; font-style: italic; text-align: center;
+  font-size: clamp(24px, calc(var(--page-w) * .056), 34px); line-height: 1.12;
+  margin: 0; color: var(--ink);
+}
+.latin .author { font-style: normal; font-size: .62em; color: var(--ink-soft); white-space: nowrap; }
+.family {
+  text-align: center; margin: 6px 0 2px;
+  font-family: "IM Fell English SC", serif; letter-spacing: .16em; font-size: 14px; color: var(--rubric);
+}
+.common { text-align: center; margin: 0; font-style: italic; color: var(--ink-soft); }
+.rule { width: 46%; margin: 16px auto 18px; }
+
+.description { text-align: justify; margin: 0 0 10px; }
+.description::first-letter {
+  font-family: "IM Fell Great Primer", serif;
+  float: left; font-size: 3.6em; line-height: .82; padding: 4px 7px 0 0;
+  color: var(--rubric);
+}
+.etymology { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 4px; text-align: justify; }
+
+.specimen h3 {
+  font-family: "IM Fell English SC", serif; font-weight: 400;
+  font-size: 14.5px; letter-spacing: .2em; color: var(--rubric);
+  margin: 20px 0 4px; display: flex; align-items: center; gap: 10px;
+}
+.specimen h3::after { content: ""; flex: 1; height: 1px; background: rgba(142,47,29,.25); }
+.specimen p { margin: 0 0 6px; }
+.specimen > p:not(.description):not(.etymology):not(.latin):not(.family):not(.common):not(.folio) { text-align: justify; }
+
+.notes { margin: 6px 0 0; padding: 10px 14px 8px; background: rgba(160,130,80,.08); border-left: 2px solid rgba(142,47,29,.35); }
+.notes p { font-style: italic; text-align: justify; }
+.notes footer { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 4px 12px; margin-top: 4px; }
+.signature { font-family: "Mrs Saint Delafield", cursive; font-size: 29px; line-height: 1; color: #33302a; transform: rotate(-3deg); }
+.notes-meta { font-size: 12.5px; color: var(--ink-faint); }
+
+.song-btn {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 6px;
+  font: inherit; font-family: "IM Fell English SC", serif; letter-spacing: .08em; font-size: 14.5px;
+  color: var(--rubric); background: transparent; cursor: pointer;
+  border: 1px solid rgba(142,47,29,.5); border-radius: 2px; padding: 5px 12px 4px;
+  transition: background .2s, color .2s;
+}
+.song-btn svg { width: 16px; height: 16px; fill: currentColor; }
+.song-btn:hover, .song-btn:focus-visible { background: var(--rubric); color: var(--paper); outline: none; }
+.song-btn.playing { background: var(--rubric); color: var(--paper); }
+
+.figures { list-style: none; padding: 0; margin: 4px 0 0; font-size: 14px; color: var(--ink-soft); }
+.figures li { margin-bottom: 3px; padding-left: 1.2em; text-indent: -1.2em; }
+.folio { text-align: center; margin-top: 26px !important; font-size: 13px; color: var(--ink-faint); letter-spacing: .1em; }
+
+/* ------------------------------------------------------------ toolbar */
+
+.toolbar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 999px;
+  background: rgba(12,18,14,.6);
+  border: 1px solid rgba(184,146,74,.28);
+  box-shadow: 0 8px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter: blur(6px);
+  color: #e9dcc0;
+}
+.tb {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 36px; min-width: 36px; padding: 0 8px;
+  border: 0; border-radius: 999px; background: transparent; color: inherit; cursor: pointer;
+  font-family: "IM Fell English SC", serif; font-size: 15px; letter-spacing: .06em;
+  transition: background .2s, color .2s;
+}
+.tb.wide { padding: 0 13px 0 10px; }
+.tb svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tb svg .fill, .tb svg .dot { fill: currentColor; stroke: none; }
+.tb:hover, .tb:focus-visible { background: rgba(233,220,192,.12); outline: none; }
+.tb:disabled { opacity: .35; cursor: default; background: transparent; }
+.tb.active { background: #e9dcc0; color: var(--baize-deep); }
+.tb.armed { color: #f2c46d; }
+.tb.armed svg { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.18); } }
+.sep { width: 1px; height: 22px; background: rgba(233,220,192,.18); margin: 0 4px; }
+.goto { display: flex; align-items: baseline; gap: 6px; font-family: "IM Fell English SC", serif; font-size: 15px; padding: 0 4px; }
+.goto input {
+  width: 6.6em; font: inherit; font-family: "IM Fell English", serif; font-size: 16px; text-align: center;
+  color: #f4ead3; background: rgba(233,220,192,.08);
+  border: 1px solid rgba(233,220,192,.2); border-radius: 4px; padding: 3px 4px 2px;
+}
+.goto input:focus { outline: none; border-color: rgba(242,196,109,.7); background: rgba(233,220,192,.14); }
+.goto .of { color: rgba(233,220,192,.55); font-size: 13px; }
+body.on-title .toolbar .needs-plate { display: none; }
+
+.pollen-chip {
+  position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 20;
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px 6px 16px; border-radius: 999px;
+  background: rgba(242,196,109,.95); color: #2a1f0c;
+  font-size: 14.5px; box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.pollen-chip b { font-weight: 400; font-family: "IM Fell English SC", serif; letter-spacing: .05em; }
+.pollen-chip button {
+  border: 0; background: rgba(42,31,12,.12); color: inherit; width: 24px; height: 24px; border-radius: 50%;
+  font-size: 17px; line-height: 1; cursor: pointer;
+}
+.toast {
+  position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 12px); z-index: 30;
+  background: var(--paper); color: var(--ink); padding: 8px 16px; border-radius: 3px;
+  font-style: italic; font-size: 15px; box-shadow: 0 8px 22px rgba(0,0,0,.4);
+  opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s;
+  max-width: calc(100vw - 32px); text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.noscript { color: var(--paper); text-align: center; }
+
+/* ------------------------------------------------------------ narrow screens: one page at a time */
+
+@media (max-width: 900px), (max-aspect-ratio: 1/1) {
+  :root { --page-w: min(calc(100vw - 32px), 640px); --page-h: auto; }
+  .desk { justify-content: flex-start; padding: 16px 16px 96px; }
+  .book { flex-direction: column; height: auto; filter: drop-shadow(0 18px 26px rgba(0,0,0,.5)); }
+  .book::before, .book::after { display: none; }
+  .page { width: var(--page-w); }
+  .page.left { height: calc(var(--page-w) / var(--plate-ratio)); border-radius: 5px 5px 0 0; box-shadow: inset 0 -30px 40px -34px rgba(60,40,15,.5), inset 0 0 50px rgba(120,90,40,.16); }
+  .page.right { height: auto; overflow: visible; border-radius: 0 0 5px 5px; box-shadow: inset 0 30px 40px -34px rgba(60,40,15,.5), inset 0 0 50px rgba(120,90,40,.16); }
+  .title-page { padding: 34px 8% 30px; }
+  .tp-title { font-size: clamp(40px, 13vw, 76px); }
+  .specimen { padding: 26px 7% 30px; }
+  .toolbar {
+    position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 15;
+    max-width: calc(100vw - 16px); overflow-x: auto; scrollbar-width: none;
+    background: rgba(12,18,14,.86);
+  }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .tb.wide span { display: none; }
+  .tb.wide { padding: 0 8px; }
+  .goto .of { display: none; }
+  .goto input { width: 5.4em; }
+  .sep { margin: 0 1px; }
+  .toast { bottom: 76px; }
+}
+@media (max-width: 420px) {
+  .goto label, .sep { display: none; }
+  .goto { padding: 0 2px; }
+  .goto input { width: 4.6em; }
+  .tb, .tb.wide { min-width: 32px; padding: 0 5px; }
+  .specimen { font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specimen.turning { animation: none; }
+  .tb.armed svg { animation: none; }
+  #plate { transition: none; }
+}
